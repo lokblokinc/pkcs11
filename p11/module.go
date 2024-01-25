@@ -34,28 +34,28 @@
 //
 // To summarize, a typical workflow might look like:
 //
-//   module, err := p11.OpenModule("/path/to/module.so")
-//   if err != nil {
-//     return err
-//   }
-//   slots, err := module.Slots()
-//   if err != nil {
-//     return err
-//   }
-//   // ... find the appropriate slot, then ...
-//   session, err := slots[0].OpenSession()
-//   if err != nil {
-//     return err
-//   }
-//   privateKeyObject, err := session.FindObject(...)
-//   if err != nil {
-//     return err
-//   }
-//   privateKey := p11.PrivateKey(privateKeyObject)
-//   signature, err := privateKey.Sign(..., []byte{"hello"})
-//   if err != nil {
-//     return err
-//   }
+//	module, err := p11.OpenModule("/path/to/module.so")
+//	if err != nil {
+//	  return err
+//	}
+//	slots, err := module.Slots()
+//	if err != nil {
+//	  return err
+//	}
+//	// ... find the appropriate slot, then ...
+//	session, err := slots[0].OpenSession()
+//	if err != nil {
+//	  return err
+//	}
+//	privateKeyObject, err := session.FindObject(...)
+//	if err != nil {
+//	  return err
+//	}
+//	privateKey := p11.PrivateKey(privateKeyObject)
+//	signature, err := privateKey.Sign(..., []byte{"hello"})
+//	if err != nil {
+//	  return err
+//	}
 package p11
 
 import (
@@ -89,9 +89,12 @@ func OpenModule(path string) (Module, error) {
 		return Module{}, fmt.Errorf("failed to load module %q", path)
 	}
 
-	err := newCtx.Initialize()
-	if err != nil {
-		return Module{}, fmt.Errorf("failed to initialize module: %s", err)
+	// Only call Initialize if the module is not initialized.
+	if _, err := newCtx.GetSlotList(true); err != nil {
+		err = newCtx.Initialize()
+		if err != nil {
+			return Module{}, fmt.Errorf("failed to initialize module: %s", err)
+		}
 	}
 
 	modules[path] = Module{newCtx}
